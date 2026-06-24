@@ -19,6 +19,21 @@ import type {
 const AUDIT_GLOBAL_LIMIT = 300; // newest events across all markets, sliced to 50/market below
 const AUDIT_PER_MARKET = 50;
 
+// Live-session fence (ELO-68). The audit_log is append-only and carries NO account
+// column, so after an account migration (ELO-62: OLD→NEW) the old account's fill
+// events — plus historical inferred/phantom fills — keep surfacing in the fill view
+// even though the live bot (a fresh upsert into bot_state) is flat. Set
+// DASHBOARD_FILLS_SINCE_MS to the cutover epoch (ms) and the audit read is scoped to
+// events at-or-after it, so the fill view reflects only the current live account.
+// Unset → no fence (original behaviour). Non-destructive: hides, never deletes; bump
+// the env on each future migration. Durable account-tagging is the follow-up (ELO-67).
+function fillsSinceMs(): number | null {
+  const raw = process.env.DASHBOARD_FILLS_SINCE_MS;
+  if (!raw) return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function env(): { url: string; anon: string } {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -72,11 +87,15 @@ export async function fetchDashboard(now: number): Promise<DashboardData> {
   );
 
   // One audit read, newest-first, restricted to the shown markets, then sliced per market.
+  // Optionally fenced to the current live session (ELO-68) so stale pre-migration /
+  // phantom fills don't surface in the fill view.
   const marketList = [...markets];
+  const since = fillsSinceMs();
+  const fence = since !== null ? `&ts=gte.${since}` : "";
   const audit =
     marketList.length > 0
       ? await read<AuditRow>(
-          `audit_log?select=*&market=in.(${marketList.join(",")})&order=ts.desc&limit=${AUDIT_GLOBAL_LIMIT}`,
+          `audit_log?select=*&market=in.(${marketList.join(",")})${fence}&order=ts.desc&limit=${AUDIT_GLOBAL_LIMIT}`,
         )
       : [];
 
