@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+
+# secrets — NEVER commit. DASHBOARD_CONTROL_SECRET / BASIC_AUTH creds live here only.
+# Catch-all for any .env variant; the committed template is the sole exception.
+.env*
+!.env.example
+*.key
+*.pem
+secrets/
+
+# misc
+*.log
+.DS_Store
+
+# typescript build info
+*.tsbuildinfo
+
+# vercel link / build cache (do not ship project ids or pulled env)
+.vercel
+.vercel/
