@@ -2,6 +2,10 @@
 
 Read-only Next.js dashboard for the Proof market maker. The UI half of ELO-13.
 
+The bot this dashboard watches lives in [ClawdGItMan/proof-market-maker](https://github.com/ClawdGItMan/proof-market-maker). This repo is the dashboard extracted on its own so it can be deployed by git push, separately from the bot.
+
+**Status (September 2026):** built and deployed for a paper-trading competition in June 2026; not maintained since. No real funds were ever involved.
+
 ## What it shows
 
 Per market (the bot may run several), live every 2s:
@@ -90,7 +94,7 @@ the wire as decimal strings and are parsed with `BigInt`, never `Number`
 
 ## Deployment
 
-This repo is **private** and git-connected to the Vercel project `proof-ops-dashboard`
-(Root Directory = repo root, production branch = `main`). Pushing to `main` triggers a
-production deploy. The app fails closed behind HTTP Basic Auth until
-`DASHBOARD_BASIC_AUTH_USER/PASSWORD` are set (see `.env.example`). (ELO-64)
+This repo was git-connected to a Vercel project (Root Directory = repo root, production
+branch = `main`) so that pushing to `main` triggered a production deploy. The app fails
+closed behind HTTP Basic Auth until `DASHBOARD_BASIC_AUTH_USER/PASSWORD` are set (see
+`.env.example`). (ELO-64)
